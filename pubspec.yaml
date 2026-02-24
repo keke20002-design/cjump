@@ -1,0 +1,28 @@
+name: anti_gravity_doodle_jump
+description: "ZeroFlip: Up Is Down - A vertical endless platformer with gravity-flip mechanic."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.4.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flame: ^1.18.0
+  sensors_plus: ^4.0.0
+  shared_preferences: ^2.2.0
+  audioplayers: ^5.2.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
+    - assets/images/
