@@ -11,27 +11,42 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  // Bounce (logo float)
   late final AnimationController _bounceCtrl;
   late final Animation<double> _bounceAnim;
+
+  // Pulse (BEST score)
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseAnim;
+
   bool _tiltEnabled = true;
 
   @override
   void initState() {
     super.initState();
+
     _bounceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     )..repeat(reverse: true);
-
-    _bounceAnim = Tween<double>(begin: 0, end: -30).animate(
+    _bounceAnim = Tween<double>(begin: 0, end: -18).animate(
       CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut),
+    );
+
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 1.0, end: 1.18).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
     _bounceCtrl.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
@@ -41,7 +56,7 @@ class _MenuScreenState extends State<MenuScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Full-screen background image
+          // ── Background image ──
           Image.asset(
             'assets/images/main_s.png',
             fit: BoxFit.cover,
@@ -55,160 +70,208 @@ class _MenuScreenState extends State<MenuScreen>
               ),
             ),
           ),
-          // Dark overlay for text readability
+
+          // ── Dark global overlay ──
           Container(color: Colors.black.withValues(alpha: 0.38)),
-          // Content
-          SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
 
-              // Animated bouncing character
-              AnimatedBuilder(
-                animation: _bounceAnim,
-                builder: (_, __) {
-                  return Transform.translate(
-                    offset: Offset(0, _bounceAnim.value),
-                    child: CustomPaint(
-                      size: const Size(80, 80),
-                      painter: _MenuCharacterPainter(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              // Title
-              const Text(
-                'ZeroFlip',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 4,
-                  shadows: [
-                    Shadow(
-                      color: Color(0xFF4A90D9),
-                      blurRadius: 20,
-                      offset: Offset(0, 0),
-                    ),
+          // ── Top-left suppression: dim competing background objects ──
+          Positioned(
+            top: 0,
+            left: 0,
+            width: 200,
+            height: 200,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.topLeft,
+                  radius: 1.0,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.transparent,
                   ],
                 ),
               ),
-              const Text(
-                'Up Is Down',
-                style: TextStyle(
-                  color: Color(0xFF4A90D9),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 6,
-                ),
-              ),
+            ),
+          ),
 
-              const SizedBox(height: 12),
+          // ── Content ──
+          SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
 
-              // Tagline
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white24),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'TAP TO FLIP GRAVITY • TILT TO MOVE',
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 11,
-                    letterSpacing: 1.5,
+                // ── Logo hero with glow ──
+                AnimatedBuilder(
+                  animation: _bounceAnim,
+                  builder: (_, __) => Transform.translate(
+                    offset: Offset(0, _bounceAnim.value),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blueAccent.withValues(alpha: 0.30),
+                            blurRadius: 60,
+                          ),
+                        ],
+                      ),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 254, // +15% from 220
+                        errorBuilder: (_, __, ___) => const SizedBox(
+                          width: 254,
+                          height: 140,
+                          child: Center(
+                            child: Text(
+                              'ZeroFlip',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 44,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 4,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
 
-              const Spacer(),
+                const SizedBox(height: 14),
 
-              // PLAY button
-              _MenuButton(
-                label: 'PLAY',
-                color: const Color(0xFF4CAF50),
-                onTap: () {
-                  widget.game.useTilt = _tiltEnabled;
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => GameScreen(game: widget.game),
-                    ),
-                  );
-                },
-              ),
+                // ── Slogan — neon style ──
+                const Text(
+                  'Up Is Down',
+                  style: TextStyle(
+                    color: Color(0xFF82C8FF),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 2,
+                    shadows: [
+                      Shadow(
+                        color: Color(0xFF4A90D9),
+                        blurRadius: 12,
+                      ),
+                      Shadow(
+                        color: Color(0xFF82C8FF),
+                        blurRadius: 24,
+                      ),
+                    ],
+                  ),
+                ),
 
-              const SizedBox(height: 16),
+                const Spacer(flex: 2),
 
-              // High Score display
-              ListenableBuilder(
-                listenable: widget.game,
-                builder: (_, __) {
-                  return Container(
+                // ── PLAY button ──
+                _MenuButton(
+                  label: 'PLAY',
+                  color: const Color(0xFF4CAF50),
+                  onTap: () {
+                    widget.game.useTilt = _tiltEnabled;
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => GameScreen(game: widget.game),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // ── BEST score pill with pulse ──
+                ListenableBuilder(
+                  listenable: widget.game,
+                  builder: (_, __) => Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                        horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white12),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.emoji_events,
-                            color: Colors.amber, size: 20),
-                        const SizedBox(width: 8),
+                            color: Colors.amber, size: 16),
+                        const SizedBox(width: 6),
                         const Text(
-                          'BEST: ',
-                          style: TextStyle(color: Colors.white54, fontSize: 14),
+                          'BEST ',
+                          style: TextStyle(
+                              color: Colors.white54, fontSize: 12),
                         ),
-                        Text(
-                          '${widget.game.scoreManager.displayHighScore}',
-                          style: const TextStyle(
-                            color: Colors.amber,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        // Pulsing score number
+                        AnimatedBuilder(
+                          animation: _pulseAnim,
+                          builder: (_, __) => Transform.scale(
+                            scale: _pulseAnim.value,
+                            child: Text(
+                              '${widget.game.scoreManager.displayHighScore}',
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.amber
+                                        .withValues(alpha: (_pulseAnim.value - 1.0) * 4),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Tilt toggle
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Tilt Control',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
-                  const SizedBox(width: 8),
-                  Switch(
-                    value: _tiltEnabled,
-                    onChanged: (v) => setState(() => _tiltEnabled = v),
-                    activeThumbColor: const Color(0xFF4A90D9),
-                  ),
-                ],
-              ),
+                ),
 
-              const Spacer(),
-            ],
+                const Spacer(flex: 3),
+
+                // ── Tilt toggle (bottom) ──
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.screen_rotation,
+                          color: Colors.white54, size: 16),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Tilt Control',
+                        style:
+                            TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      const SizedBox(width: 4),
+                      Switch(
+                        value: _tiltEnabled,
+                        onChanged: (v) =>
+                            setState(() => _tiltEnabled = v),
+                        activeThumbColor: const Color(0xFF4A90D9),
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),  // SafeArea
-        ],  // Stack children
-      ),    // Stack / Scaffold body
+        ],
+      ),
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _MenuButton extends StatelessWidget {
   final String label;
@@ -226,15 +289,15 @@ class _MenuButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 200,
-        height: 56,
+        width: 220,
+        height: 60,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.5),
-              blurRadius: 20,
+              color: color.withValues(alpha: 0.55),
+              blurRadius: 24,
               spreadRadius: 2,
             ),
           ],
@@ -244,47 +307,12 @@ class _MenuButton extends StatelessWidget {
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.w900,
-            letterSpacing: 3,
+            letterSpacing: 4,
           ),
         ),
       ),
     );
   }
-}
-
-class _MenuCharacterPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final bodyPaint = Paint()
-      ..color = const Color(0xFF4CAF50)
-      ..style = PaintingStyle.fill;
-    final outlinePaint = Paint()
-      ..color = const Color(0xFF1B5E20)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx, cy), width: 56, height: 50),
-      bodyPaint,
-    );
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx, cy), width: 56, height: 50),
-      outlinePaint,
-    );
-
-    // Eyes
-    for (final signX in [-1.0, 1.0]) {
-      final eyeCenter = Offset(cx + signX * 10, cy - 4);
-      canvas.drawCircle(eyeCenter, 7, Paint()..color = Colors.white);
-      canvas.drawCircle(
-          eyeCenter + const Offset(1, 1), 4, Paint()..color = Colors.black);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
