@@ -35,6 +35,19 @@ class ScoreManager {
     }
   }
 
+  /// 콤보 배율 적용 버전 (콤보 시스템 사용 시)
+  void updateWithMultiplier(double playerWorldY, double multiplier) {
+    if (_highestY == null) {
+      _highestY = playerWorldY;
+      return;
+    }
+    if (playerWorldY < _highestY!) {
+      final delta = _highestY! - playerWorldY;
+      _currentScore += delta * 0.1 * multiplier;
+      _highestY = playerWorldY;
+    }
+  }
+
   Future<void> saveHighScore() async {
     if (_currentScore > _highScore) {
       _highScore = _currentScore;

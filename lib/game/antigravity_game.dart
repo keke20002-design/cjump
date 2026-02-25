@@ -9,20 +9,32 @@ import '../utils/collision_detector.dart';
 import 'game_state.dart';
 import 'gravity_system.dart';
 import 'score_manager.dart';
+import 'combo_manager.dart';
 import '../components/player.dart';
 import '../components/platform.dart';
 import '../components/background.dart';
+import '../components/coin_component.dart';
 import '../components/platform_types/normal_platform.dart';
 import '../components/platform_types/moving_platform.dart';
 import '../components/platform_types/breaking_platform.dart';
 import '../components/platform_types/gravity_pad_platform.dart';
 import '../components/platform_types/spike_platform.dart';
 import '../components/platform_types/cloud_platform.dart';
+import '../economy/coin_manager.dart';
+import '../economy/persistence_manager.dart';
+import '../achievements/achievement_manager.dart';
+import '../missions/daily_mission_manager.dart';
+import '../skins/skin_catalog.dart';
+import '../skins/skin_renderer.dart';
 
 class AntiGravityGame extends ChangeNotifier {
   // Core systems
   final GravitySystem gravity = GravitySystem();
   final ScoreManager scoreManager = ScoreManager();
+  final CoinManager coinManager = CoinManager();
+  final ComboManager comboManager = ComboManager();
+  late final AchievementManager achievementManager;
+  late final DailyMissionManager missionManager;
 
   // State
   GameState gameState = GameState.menu;
@@ -30,6 +42,7 @@ class AntiGravityGame extends ChangeNotifier {
   // World
   late PlayerComponent player;
   final List<GamePlatform> platforms = [];
+  final List<CoinComponent> coins = [];
   final BackgroundComponent background = BackgroundComponent();
   double cameraY = 0; // world Y of the top of visible area
 
@@ -59,8 +72,26 @@ class AntiGravityGame extends ChangeNotifier {
   double _lowestGeneratedY = 0;
   double _highestGeneratedY = double.infinity;
 
+  // Skin
+  late SkinRenderer skinRenderer;
+  int _lastScoreMilestone = 0;
+  int _consecutiveLands = 0; // 연속 착지 카운터
+
   AntiGravityGame() {
+    achievementManager = AchievementManager(coinManager: coinManager);
+    missionManager = DailyMissionManager();
     gravity.addFlipListener(_onGravityFlip);
+    _initSkin();
+  }
+
+  void _initSkin() {
+    final catalog = buildSkinCatalog();
+    final savedId = PersistenceManager.instance.selectedSkin;
+    final skin = catalog.firstWhere(
+      (s) => s.id == savedId,
+      orElse: () => catalog.first,
+    );
+    skinRenderer = SkinRenderer(skin);
   }
 
   /// Called synchronously before startGame() — sets screen dimensions.
@@ -76,15 +107,31 @@ class AntiGravityGame extends ChangeNotifier {
     }
   }
 
-  /// Loads persisted high score in the background (safe to call after startGame).
-  Future<void> loadPrefs() => scoreManager.init();
+  /// Loads persisted high score and all managers in the background.
+  Future<void> loadPrefs() async {
+    await scoreManager.init();
+    await PersistenceManager.instance.init();
+    await coinManager.init();
+    await achievementManager.init();
+    await missionManager.init();
+    _initSkin(); // reload after prefs are loaded
+    notifyListeners();
+  }
 
   void startGame() {
     gravity.reset();
     scoreManager.reset();
+    comboManager.reset();
+    coinManager.resetSession();
+    coinManager.clearDoubleCoins();
+    achievementManager.resetSession();
+    missionManager.resetSession();
     platforms.clear();
+    coins.clear();
     _particles.clear();
     _flashAlpha = 0;
+    _lastScoreMilestone = 0;
+    _consecutiveLands = 0;
 
     final startX = screenWidth / 2;
     final startY = screenHeight * 0.6;
@@ -121,13 +168,29 @@ class AntiGravityGame extends ChangeNotifier {
 
     gravity.update(dt);
     background.update(dt, !gravity.isNormal); // crossfade play_g ↔ play_N
+    skinRenderer.update(dt);
 
     // Horizontal from tilt or touch
     player.velocityX =
         _tiltX * kMaxHorizontalSpeed;
 
     player.update(dt, gravity, screenWidth);
-    scoreManager.update(player.y);
+
+    // 점수 업데이트 (콤보 배율 적용)
+    final prevScore = scoreManager.displayScore;
+    scoreManager.updateWithMultiplier(player.y, comboManager.multiplier);
+    final newScore = scoreManager.displayScore;
+
+    // 점수 100점마다 코인 보너스 + 업적 체크
+    final milestone = newScore ~/ 100;
+    if (milestone > _lastScoreMilestone) {
+      _lastScoreMilestone = milestone;
+      coinManager.onScoreMilestone();
+    }
+    if (newScore != prevScore) {
+      achievementManager.onScoreUpdate(newScore);
+      missionManager.onFlip; // score changes don't trigger flip
+    }
 
     // Update platforms
     for (final p in platforms) {
@@ -135,12 +198,28 @@ class AntiGravityGame extends ChangeNotifier {
     }
     platforms.removeWhere((p) => p.isDestroyed);
 
+    // Update coins
+    for (final c in coins) {
+      c.update(dt);
+      // 마그넷 수집
+      if (!c.isCollected) {
+        final dx = player.x - c.x;
+        final dy = player.y - c.y;
+        if (dx * dx + dy * dy <= CoinComponent.magnetRange * CoinComponent.magnetRange) {
+          c.collect();
+          coinManager.onPlatformLand(); // +1 coin
+          missionManager.onCoinCollected();
+          achievementManager.onCoinsCollected(
+              PersistenceManager.instance.statTotalCoinsEver + coinManager.sessionCoins);
+        }
+      }
+    }
+    coins.removeWhere((c) => c.isDead);
+
     // Collision detection
     _handleCollisions();
 
     // Camera: only follow player upward in NORMAL gravity.
-    // In antigravity mode the camera freezes so the player actually
-    // drifts toward the electric ceiling at the top of the screen.
     if (gravity.isNormal) {
       final targetCameraY = player.y - screenHeight * kCameraLead;
       if (targetCameraY < cameraY) {
@@ -153,6 +232,10 @@ class AntiGravityGame extends ChangeNotifier {
 
     // Cull platforms behind camera
     _cullPlatforms();
+    coins.removeWhere((c) {
+      if (gravity.isNormal) return c.y > cameraY + screenHeight + 200;
+      return c.y < cameraY - 200;
+    });
 
     // Flash effect decay
     if (_flashAlpha > 0) {
@@ -173,7 +256,6 @@ class AntiGravityGame extends ChangeNotifier {
     _checkGameOver();
 
     // Ceiling death: antigravity player touches the electric wire (screen-space check)
-    // The wire is drawn at screen y = kElectricWireY (14px from top)
     if (!gravity.isNormal) {
       final playerScreenY = player.y - cameraY;
       if (playerScreenY - kCharacterSize / 2 <= kElectricWireY) {
@@ -209,6 +291,24 @@ class AntiGravityGame extends ChangeNotifier {
         player.velocityY = gravity.isNormal ? -kJumpVelocity : kJumpVelocity;
         player.onBounce();
         _playBounce();
+
+        // ── 착지 이벤트 훅 ────────────────────────────────────────────────
+        _consecutiveLands++;
+        final isGravPad = platform.type == PlatformType.gravityPad;
+        coinManager.onPlatformLand(isGravityPad: isGravPad);
+        comboManager.onLand();
+        missionManager.onConsecutivePlatform(_consecutiveLands);
+        achievementManager.onPlatformLand(_consecutiveLands);
+        achievementManager.onComboReached(comboManager.combo);
+        missionManager.onCombo(comboManager.combo);
+
+        // 코인 아이템 스폰 (최대 8개)
+        if (coins.length < 8 && _rng.nextDouble() < 0.35) {
+          coins.add(CoinComponent(
+            x: platform.x + (_rng.nextDouble() - 0.5) * 40,
+            y: platform.y - 20,
+          ));
+        }
       }
     }
   }
@@ -230,7 +330,17 @@ class AntiGravityGame extends ChangeNotifier {
 
   void _triggerGameOver() {
     gameState = GameState.gameOver;
+    comboManager.onBreak();
     scoreManager.saveHighScore();
+    final finalScore = scoreManager.displayScore;
+    // 비동기 세션 커밋
+    coinManager.commitSession().then((_) {
+      comboManager.commitSession();
+      achievementManager.onGameOver(finalScore);
+      missionManager.onGameOver(finalScore);
+      // 점수 기반 스킨 자동 해금 체크
+      checkScoreUnlocks(scoreManager.displayHighScore);
+    });
     notifyListeners();
   }
 
@@ -337,6 +447,10 @@ class AntiGravityGame extends ChangeNotifier {
   void _onGravityFlip() {
     _flashAlpha = 0.35;
     _spawnFlipParticles();
+    _consecutiveLands = 0; // 착지 연속 초기화
+    comboManager.onBreak();  // 콤보 리셋은 선택사항 - 중력뒤집기는 스킬이므로 유지
+    achievementManager.onGravityFlip();
+    missionManager.onFlip();
   }
 
   void _spawnFlipParticles() {
@@ -371,8 +485,13 @@ class AntiGravityGame extends ChangeNotifier {
       p.draw(canvas);
     }
 
-    // Draw player
-    player.draw(canvas, gravity.isNormal);
+    // Draw coins
+    for (final c in coins) {
+      c.draw(canvas);
+    }
+
+    // Draw player (with skin)
+    skinRenderer.draw(canvas, player.x, player.y, gravity.isNormal);
 
     // Draw particles
     for (final p in _particles) {

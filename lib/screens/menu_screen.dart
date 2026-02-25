@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../game/antigravity_game.dart';
 import 'game_screen.dart';
+import 'skin_shop_screen.dart';
+import 'achievement_screen.dart';
+import 'mission_screen.dart';
 
 class MenuScreen extends StatefulWidget {
   final AntiGravityGame game;
@@ -12,11 +16,8 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen>
     with TickerProviderStateMixin {
-  // Bounce (logo float)
   late final AnimationController _bounceCtrl;
   late final Animation<double> _bounceAnim;
-
-  // Pulse (BEST score)
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;
 
@@ -25,7 +26,6 @@ class _MenuScreenState extends State<MenuScreen>
   @override
   void initState() {
     super.initState();
-
     _bounceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -33,7 +33,6 @@ class _MenuScreenState extends State<MenuScreen>
     _bounceAnim = Tween<double>(begin: 0, end: -18).animate(
       CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut),
     );
-
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -56,7 +55,7 @@ class _MenuScreenState extends State<MenuScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Background image ──
+          // Background
           Image.asset(
             'assets/images/main_s.png',
             fit: BoxFit.cover,
@@ -70,37 +69,78 @@ class _MenuScreenState extends State<MenuScreen>
               ),
             ),
           ),
-
-          // ── Dark global overlay ──
           Container(color: Colors.black.withValues(alpha: 0.38)),
 
-          // ── Top-left suppression: dim competing background objects ──
-          Positioned(
-            top: 0,
-            left: 0,
-            width: 200,
-            height: 200,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.topLeft,
-                  radius: 1.0,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.55),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // ── Content ──
           SafeArea(
             child: Column(
               children: [
+                // Top bar: coin + icon buttons
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ListenableBuilder(
+                        listenable: widget.game.coinManager,
+                        builder: (_, __) => Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('💰',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${widget.game.coinManager.balance}',
+                                style: const TextStyle(
+                                  color: Color(0xFFFFD700),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          _IconMenuButton(
+                            icon: '🏆',
+                            label: '업적',
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AchievementScreen(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _IconMenuButton(
+                            icon: '📋',
+                            label: '미션',
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => MissionScreen(
+                                  missionManager: widget.game.missionManager,
+                                  coinManager: widget.game.coinManager,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 const Spacer(flex: 2),
 
-                // ── Logo hero with glow ──
+                // Logo
                 AnimatedBuilder(
                   animation: _bounceAnim,
                   builder: (_, __) => Transform.translate(
@@ -116,7 +156,7 @@ class _MenuScreenState extends State<MenuScreen>
                       ),
                       child: Image.asset(
                         'assets/images/logo.png',
-                        width: 254, // +15% from 220
+                        width: 254,
                         errorBuilder: (_, __, ___) => const SizedBox(
                           width: 254,
                           height: 140,
@@ -139,7 +179,7 @@ class _MenuScreenState extends State<MenuScreen>
 
                 const SizedBox(height: 14),
 
-                // ── Slogan — neon style ──
+                // Slogan
                 const Text(
                   'Up Is Down',
                   style: TextStyle(
@@ -148,21 +188,15 @@ class _MenuScreenState extends State<MenuScreen>
                     fontWeight: FontWeight.w600,
                     letterSpacing: 2,
                     shadows: [
-                      Shadow(
-                        color: Color(0xFF4A90D9),
-                        blurRadius: 12,
-                      ),
-                      Shadow(
-                        color: Color(0xFF82C8FF),
-                        blurRadius: 24,
-                      ),
+                      Shadow(color: Color(0xFF4A90D9), blurRadius: 12),
+                      Shadow(color: Color(0xFF82C8FF), blurRadius: 24),
                     ],
                   ),
                 ),
 
                 const Spacer(flex: 2),
 
-                // ── PLAY button ──
+                // PLAY
                 _MenuButton(
                   label: 'PLAY',
                   color: const Color(0xFF4CAF50),
@@ -176,9 +210,44 @@ class _MenuScreenState extends State<MenuScreen>
                   },
                 ),
 
+                const SizedBox(height: 14),
+
+                // Skin shop
+                GestureDetector(
+                  onTap: () async {
+                    await Navigator.of(context).push<String>(
+                      MaterialPageRoute(
+                        builder: (_) => SkinShopScreen(
+                          coinManager: widget.game.coinManager,
+                        ),
+                      ),
+                    );
+                    widget.game.loadPrefs();
+                  },
+                  child: Container(
+                    width: 220,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white24, width: 1.5),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'SKIN SHOP',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 20),
 
-                // ── BEST score pill with pulse ──
+                // Best score
                 ListenableBuilder(
                   listenable: widget.game,
                   builder: (_, __) => Container(
@@ -195,29 +264,19 @@ class _MenuScreenState extends State<MenuScreen>
                         const Icon(Icons.emoji_events,
                             color: Colors.amber, size: 16),
                         const SizedBox(width: 6),
-                        const Text(
-                          'BEST ',
-                          style: TextStyle(
-                              color: Colors.white54, fontSize: 12),
-                        ),
-                        // Pulsing score number
+                        const Text('BEST ',
+                            style: TextStyle(
+                                color: Colors.white54, fontSize: 12)),
                         AnimatedBuilder(
                           animation: _pulseAnim,
                           builder: (_, __) => Transform.scale(
                             scale: _pulseAnim.value,
                             child: Text(
                               '${widget.game.scoreManager.displayHighScore}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.amber,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.amber
-                                        .withValues(alpha: (_pulseAnim.value - 1.0) * 4),
-                                    blurRadius: 8,
-                                  ),
-                                ],
                               ),
                             ),
                           ),
@@ -227,9 +286,28 @@ class _MenuScreenState extends State<MenuScreen>
                   ),
                 ),
 
+                const SizedBox(height: 25),
+
+                // Character Preview (Bouncing)
+                AnimatedBuilder(
+                  animation: _bounceAnim,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, _bounceAnim.value),
+                      child: child,
+                    );
+                  },
+                  child: ListenableBuilder(
+                    listenable: widget.game,
+                    builder: (context, _) => _CharacterPreview(
+                      skinRenderer: widget.game.skinRenderer,
+                    ),
+                  ),
+                ),
+
                 const Spacer(flex: 3),
 
-                // ── Tilt toggle (bottom) ──
+                // Tilt toggle
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   padding: const EdgeInsets.symmetric(
@@ -245,16 +323,13 @@ class _MenuScreenState extends State<MenuScreen>
                       const Icon(Icons.screen_rotation,
                           color: Colors.white54, size: 16),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Tilt Control',
-                        style:
-                            TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
+                      const Text('Tilt Control',
+                          style: TextStyle(
+                              color: Colors.white70, fontSize: 13)),
                       const SizedBox(width: 4),
                       Switch(
                         value: _tiltEnabled,
-                        onChanged: (v) =>
-                            setState(() => _tiltEnabled = v),
+                        onChanged: (v) => setState(() => _tiltEnabled = v),
                         activeThumbColor: const Color(0xFF4A90D9),
                         materialTapTargetSize:
                             MaterialTapTargetSize.shrinkWrap,
@@ -271,7 +346,41 @@ class _MenuScreenState extends State<MenuScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+class _IconMenuButton extends StatelessWidget {
+  final String icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _IconMenuButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 20)),
+            Text(label,
+                style:
+                    const TextStyle(color: Colors.white70, fontSize: 10)),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _MenuButton extends StatelessWidget {
   final String label;
@@ -315,4 +424,59 @@ class _MenuButton extends StatelessWidget {
       ),
     );
   }
+}
+class _CharacterPreview extends StatefulWidget {
+  final dynamic skinRenderer;
+  const _CharacterPreview({required this.skinRenderer});
+
+  @override
+  State<_CharacterPreview> createState() => _CharacterPreviewState();
+}
+
+class _CharacterPreviewState extends State<_CharacterPreview>
+    with SingleTickerProviderStateMixin {
+  late Ticker _ticker;
+  double _lastElapsed = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker((elapsed) {
+      final elapsedSec = elapsed.inMicroseconds / 1000000.0;
+      final dt = elapsedSec - _lastElapsed;
+      _lastElapsed = elapsedSec;
+      
+      // Update internal constants of skinRenderer
+      widget.skinRenderer.update(dt);
+      if (mounted) setState(() {});
+    });
+    _ticker.start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(60, 60),
+      painter: _SkinPainter(widget.skinRenderer),
+    );
+  }
+}
+
+class _SkinPainter extends CustomPainter {
+  final dynamic renderer;
+  _SkinPainter(this.renderer);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    renderer.draw(canvas, size.width / 2, size.height / 2, true);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
