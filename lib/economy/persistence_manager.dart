@@ -22,17 +22,9 @@ class PersistenceManager {
   Future<void> setCoins(int v) => _p.setInt(PersistenceKeys.coins, v);
 
   // ── Skins ─────────────────────────────────────────────────────────────────
-  // [DEBUG] 테스트를 위해 모든 스킨 해금
-  List<String> get unlockedSkins => [
-        'green_core', 'red_core', 'neon_core', 'shadow_core',
-        'lightning_trail', 'stardust_trail', 'flame_core', 'ice_core',
-        'blackhole_core', 'virus_core', 'gold_core', 'robot_core',
-        'ghost_core', 'pixel_core', 'neon_glitch', 'rainbow_core'
-      ];
-  /* 기존 로직:
   List<String> get unlockedSkins =>
       _p.getStringList(PersistenceKeys.unlockedSkins) ?? ['green_core'];
-  */
+
   Future<void> setUnlockedSkins(List<String> v) =>
       _p.setStringList(PersistenceKeys.unlockedSkins, v);
 
