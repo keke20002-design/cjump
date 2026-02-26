@@ -323,60 +323,62 @@ class _PauseOverlay extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A90D9).withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF4A90D9).withValues(alpha: 0.5),
-                    width: 1.5,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A90D9).withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF4A90D9).withValues(alpha: 0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(Icons.pause_rounded,
+                      color: Color(0xFF4A90D9), size: 30),
+                ),
+                const SizedBox(height: 16),
+                // Title
+                const Text(
+                  'PAUSED',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 4,
                   ),
                 ),
-                child: const Icon(Icons.pause_rounded,
-                    color: Color(0xFF4A90D9), size: 30),
-              ),
-              const SizedBox(height: 16),
-              // Title
-              const Text(
-                'PAUSED',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 4,
+                const SizedBox(height: 28),
+                // Resume button
+                _PauseMenuButton(
+                  icon: Icons.play_arrow_rounded,
+                  label: '계속하기',
+                  color: const Color(0xFF4CAF50),
+                  onTap: onResume,
                 ),
-              ),
-              const SizedBox(height: 28),
-              // Resume button
-              _PauseMenuButton(
-                icon: Icons.play_arrow_rounded,
-                label: '계속하기',
-                color: const Color(0xFF4CAF50),
-                onTap: onResume,
-              ),
-              const SizedBox(height: 12),
-              // Restart button
-              _PauseMenuButton(
-                icon: Icons.replay_rounded,
-                label: '다시 시작',
-                color: const Color(0xFF4A90D9),
-                onTap: onRestart,
-              ),
-              const SizedBox(height: 12),
-              // Home button
-              _PauseMenuButton(
-                icon: Icons.home_rounded,
-                label: '홈으로',
-                color: const Color(0xFFAB47BC),
-                onTap: onHome,
-              ),
-            ],
+                const SizedBox(height: 12),
+                // Restart button
+                _PauseMenuButton(
+                  icon: Icons.replay_rounded,
+                  label: '다시 시작',
+                  color: const Color(0xFF4A90D9),
+                  onTap: onRestart,
+                ),
+                const SizedBox(height: 12),
+                // Home button
+                _PauseMenuButton(
+                  icon: Icons.home_rounded,
+                  label: '홈으로',
+                  color: const Color(0xFFAB47BC),
+                  onTap: onHome,
+                ),
+              ],
+            ),
           ),
         ),
       ),

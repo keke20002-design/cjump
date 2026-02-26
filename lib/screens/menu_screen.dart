@@ -72,7 +72,12 @@ class _MenuScreenState extends State<MenuScreen>
           Container(color: Colors.black.withValues(alpha: 0.38)),
 
           SafeArea(
-            child: Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
               children: [
                 // Top bar: coin + icon buttons
                 Padding(
@@ -338,6 +343,10 @@ class _MenuScreenState extends State<MenuScreen>
                   ),
                 ),
               ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],

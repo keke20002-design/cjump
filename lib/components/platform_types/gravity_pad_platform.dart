@@ -5,10 +5,15 @@ import '../../game/gravity_system.dart';
 
 class GravityPadPlatform extends GamePlatform {
   GravitySystem? gravitySystem;
+  int score;
   double _pulseTimer = 0;
 
-  GravityPadPlatform({required super.x, required super.y, this.gravitySystem})
-      : super(
+  GravityPadPlatform({
+    required super.x,
+    required super.y,
+    this.gravitySystem,
+    this.score = 0,
+  }) : super(
           width: kPlatformWidth,
           height: kPlatformHeight,
           type: PlatformType.gravityPad,
@@ -19,7 +24,7 @@ class GravityPadPlatform extends GamePlatform {
 
   @override
   bool onPlayerBounce() {
-    gravitySystem?.forceFlip();
+    gravitySystem?.forceFlip(score);
     _pulseTimer = 0.4;
     return true;
   }

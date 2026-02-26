@@ -45,6 +45,7 @@ class AntiGravityGame extends ChangeNotifier {
   final List<CoinComponent> coins = [];
   final BackgroundComponent background = BackgroundComponent();
   double cameraY = 0; // world Y of the top of visible area
+  double _scrollSpeed = kBaseScrollSpeed;
 
   // Screen dimensions (set once on first frame)
   double screenWidth = 0;
@@ -52,6 +53,7 @@ class AntiGravityGame extends ChangeNotifier {
 
   // Visual effects
   double _flashAlpha = 0;
+  double _shakeTimer = 0;
   final List<_Particle> _particles = [];
 
   // Platform generation
@@ -132,6 +134,7 @@ class AntiGravityGame extends ChangeNotifier {
     _flashAlpha = 0;
     _lastScoreMilestone = 0;
     _consecutiveLands = 0;
+    _scrollSpeed = kBaseScrollSpeed;
 
     final startX = screenWidth / 2;
     final startY = screenHeight * 0.6;
@@ -166,7 +169,10 @@ class AntiGravityGame extends ChangeNotifier {
     if (gameState != GameState.playing) return;
     dt = dt.clamp(0, 0.05); // prevent spiral of death
 
-    gravity.update(dt);
+    _scrollSpeed += 0.002 * (60 * dt); // ~0.002 per frame increase
+    cameraY -= _scrollSpeed * dt; // Auto-scroll camera upward
+
+    gravity.update(dt, scoreManager.displayScore);
     background.update(dt, !gravity.isNormal); // crossfade play_g ↔ play_N
     skinRenderer.update(dt);
 
@@ -243,6 +249,11 @@ class AntiGravityGame extends ChangeNotifier {
       _flashAlpha = _flashAlpha.clamp(0, 1);
     }
 
+    // Shake effect decay
+    if (_shakeTimer > 0) {
+      _shakeTimer -= dt;
+    }
+
     // Electric ceiling timer
     _electricTimer += dt;
 
@@ -253,6 +264,9 @@ class AntiGravityGame extends ChangeNotifier {
     _particles.removeWhere((p) => p.isDead);
 
     // Game over check
+    if (player.y <= kWorldTopLimit) {
+      _triggerGameOver();
+    }
     _checkGameOver();
 
     // Ceiling death: antigravity player touches the electric wire (screen-space check)
@@ -360,9 +374,15 @@ class AntiGravityGame extends ChangeNotifier {
   }
 
   void _generatePlatformsDownward(double fromY, double toY) {
+    final score = scoreManager.displayScore;
+    double baseGap = kBasePlatformGap + (score * 0.3);
+    if (score < 400) baseGap -= 30; // Increase density in early game
+    final minG = (baseGap * 0.7).clamp(kMinPlatformGap, kMaxPlatformGap);
+    final maxG = (baseGap * 1.3).clamp(kMinPlatformGap, kMaxPlatformGap);
+
     double y = fromY;
     while (y < toY) {
-      final gap = _rng.nextDouble() * (kMaxPlatformGap - kMinPlatformGap) + kMinPlatformGap;
+      final gap = _rng.nextDouble() * (maxG - minG) + minG;
       y += gap;
       _spawnPlatformAt(y);
     }
@@ -370,9 +390,15 @@ class AntiGravityGame extends ChangeNotifier {
   }
 
   void _generatePlatformsUpward(double fromY, double toY) {
+    final score = scoreManager.displayScore;
+    double baseGap = kBasePlatformGap + (score * 0.3);
+    if (score < 400) baseGap -= 30; // Increase density in early game
+    final minG = (baseGap * 0.7).clamp(kMinPlatformGap, kMaxPlatformGap);
+    final maxG = (baseGap * 1.3).clamp(kMinPlatformGap, kMaxPlatformGap);
+
     double y = fromY;
     while (y > toY) {
-      final gap = _rng.nextDouble() * (kMaxPlatformGap - kMinPlatformGap) + kMinPlatformGap;
+      final gap = _rng.nextDouble() * (maxG - minG) + minG;
       y -= gap;
       _spawnPlatformAt(y);
     }
@@ -388,22 +414,25 @@ class AntiGravityGame extends ChangeNotifier {
 
   GamePlatform _pickPlatformType(int score, double x, double y) {
     final roll = _rng.nextDouble();
-    if (score < 500) {
-      // 80% normal, 20% moving
-      if (roll < 0.80) return NormalPlatform(x: x, y: y);
+    if (score < 100) {
+      // 100% normal
+      return NormalPlatform(x: x, y: y);
+    } else if (score < 400) {
+      // 70% normal, 30% moving
+      if (roll < 0.70) return NormalPlatform(x: x, y: y);
       return MovingPlatform(x: x, y: y, screenWidth: screenWidth);
-    } else if (score < 1500) {
-      // 60% normal, 20% moving, 10% breaking, 10% gravity pad
-      if (roll < 0.60) return NormalPlatform(x: x, y: y);
-      if (roll < 0.80) return MovingPlatform(x: x, y: y, screenWidth: screenWidth);
+    } else if (score < 1000) {
+      // 50% normal, 20% moving, 20% breaking, 10% gravity pad
+      if (roll < 0.50) return NormalPlatform(x: x, y: y);
+      if (roll < 0.70) return MovingPlatform(x: x, y: y, screenWidth: screenWidth);
       if (roll < 0.90) return BreakingPlatform(x: x, y: y);
-      return GravityPadPlatform(x: x, y: y, gravitySystem: gravity);
+      return GravityPadPlatform(x: x, y: y, gravitySystem: gravity, score: score);
     } else {
-      // 40% normal, 20% moving, 15% breaking, 15% gravity pad, 10% spike
-      if (roll < 0.40) return NormalPlatform(x: x, y: y);
-      if (roll < 0.60) return MovingPlatform(x: x, y: y, screenWidth: screenWidth);
+      // 30% normal, 25% moving, 20% breaking, 15% gravity pad, 10% spike
+      if (roll < 0.30) return NormalPlatform(x: x, y: y);
+      if (roll < 0.55) return MovingPlatform(x: x, y: y, screenWidth: screenWidth);
       if (roll < 0.75) return BreakingPlatform(x: x, y: y);
-      if (roll < 0.90) return GravityPadPlatform(x: x, y: y, gravitySystem: gravity);
+      if (roll < 0.90) return GravityPadPlatform(x: x, y: y, gravitySystem: gravity, score: score);
       return SpikePlatform(x: x, y: y);
     }
   }
@@ -423,7 +452,7 @@ class AntiGravityGame extends ChangeNotifier {
 
   void onTap() {
     if (gameState != GameState.playing) return;
-    final flipped = gravity.tryFlip();
+    final flipped = gravity.tryFlip(scoreManager.displayScore);
     if (flipped) {
       _playFlip();
       HapticFeedback.mediumImpact();
@@ -446,6 +475,7 @@ class AntiGravityGame extends ChangeNotifier {
 
   void _onGravityFlip() {
     _flashAlpha = 0.35;
+    _shakeTimer = 0.2; // 200ms shake
     _spawnFlipParticles();
     _consecutiveLands = 0; // 착지 연속 초기화
     comboManager.onBreak();  // 콤보 리셋은 선택사항 - 중력뒤집기는 스킬이므로 유지
@@ -472,6 +502,15 @@ class AntiGravityGame extends ChangeNotifier {
   // ─── Rendering ────────────────────────────────────────────────────────────
 
   void render(Canvas canvas, Size size) {
+    canvas.save();
+    if (_shakeTimer > 0) {
+      final intensity = (_shakeTimer / 0.2) * 8;
+      canvas.translate(
+        (_rng.nextDouble() - 0.5) * intensity,
+        (_rng.nextDouble() - 0.5) * intensity,
+      );
+    }
+
     // Draw background (world-space aware)
     background.draw(canvas, size, cameraY);
 
@@ -513,9 +552,11 @@ class AntiGravityGame extends ChangeNotifier {
           ..color = (gravity.isNormal
                   ? const Color(0xFF42A5F5)
                   : const Color(0xFFAB47BC))
-              .withValues(alpha: _flashAlpha),
+              .withAlpha((_flashAlpha * 255).toInt()), // Use withAlpha for int
       );
     }
+
+    canvas.restore(); // Restore shake save
   }
 
   void _drawElectricCeiling(Canvas canvas, Size size) {
