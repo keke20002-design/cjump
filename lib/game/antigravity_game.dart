@@ -69,6 +69,7 @@ class AntiGravityGame extends ChangeNotifier {
   // Audio
   final AudioPlayer _bouncePlayer = AudioPlayer();
   final AudioPlayer _flipPlayer = AudioPlayer();
+  final AudioPlayer _gameOverPlayer = AudioPlayer();
 
   // Generation top tracking
   double _lowestGeneratedY = 0;
@@ -346,6 +347,7 @@ class AntiGravityGame extends ChangeNotifier {
     gameState = GameState.gameOver;
     comboManager.onBreak();
     scoreManager.saveHighScore();
+    _gameOverPlayer.play(AssetSource('audio/over.wav'));
     final finalScore = scoreManager.displayScore;
     // 비동기 세션 커밋
     coinManager.commitSession().then((_) {
@@ -376,9 +378,17 @@ class AntiGravityGame extends ChangeNotifier {
   void _generatePlatformsDownward(double fromY, double toY) {
     final score = scoreManager.displayScore;
     double baseGap = kBasePlatformGap + (score * 0.3);
-    if (score < 400) baseGap -= 30; // Increase density in early game
-    final minG = (baseGap * 0.7).clamp(kMinPlatformGap, kMaxPlatformGap);
-    final maxG = (baseGap * 1.3).clamp(kMinPlatformGap, kMaxPlatformGap);
+    double minGapClamp = kMinPlatformGap;
+
+    if (score < 100) {
+      baseGap -= 50; // Denser early game
+      minGapClamp = 60.0; // Allow smaller gaps
+    } else if (score < 400) {
+      baseGap -= 30;
+    }
+
+    final minG = (baseGap * 0.7).clamp(minGapClamp, kMaxPlatformGap);
+    final maxG = (baseGap * 1.3).clamp(minGapClamp, kMaxPlatformGap);
 
     double y = fromY;
     while (y < toY) {
@@ -392,9 +402,17 @@ class AntiGravityGame extends ChangeNotifier {
   void _generatePlatformsUpward(double fromY, double toY) {
     final score = scoreManager.displayScore;
     double baseGap = kBasePlatformGap + (score * 0.3);
-    if (score < 400) baseGap -= 30; // Increase density in early game
-    final minG = (baseGap * 0.7).clamp(kMinPlatformGap, kMaxPlatformGap);
-    final maxG = (baseGap * 1.3).clamp(kMinPlatformGap, kMaxPlatformGap);
+    double minGapClamp = kMinPlatformGap;
+
+    if (score < 100) {
+      baseGap -= 50;
+      minGapClamp = 60.0;
+    } else if (score < 400) {
+      baseGap -= 30;
+    }
+
+    final minG = (baseGap * 0.7).clamp(minGapClamp, kMaxPlatformGap);
+    final maxG = (baseGap * 1.3).clamp(minGapClamp, kMaxPlatformGap);
 
     double y = fromY;
     while (y > toY) {
@@ -640,8 +658,8 @@ class AntiGravityGame extends ChangeNotifier {
   // ─── Audio ────────────────────────────────────────────────────────────────
 
   void _playBounce() {
-    // Audio files are optional - silently fail if missing
-    // _bouncePlayer.play(AssetSource('audio/bounce.mp3'));
+    final sound = gravity.isNormal ? 'audio/Jump.wav' : 'audio/Anti.wav';
+    _bouncePlayer.play(AssetSource(sound));
   }
 
   void _playFlip() {
@@ -652,6 +670,7 @@ class AntiGravityGame extends ChangeNotifier {
   void dispose() {
     _bouncePlayer.dispose();
     _flipPlayer.dispose();
+    _gameOverPlayer.dispose();
     super.dispose();
   }
 }
