@@ -5,8 +5,8 @@ List<Achievement> buildAchievementCatalog() => [
       // ── 점수 관련 ──────────────────────────────────────────────────────────
       Achievement(
         id: 'first_flight',
-        title: '첫 비행',
-        description: '단일 게임 500점 달성',
+        title: 'First Flight',
+        description: 'Single run score 500',
         iconEmoji: '🚀',
         condition: AchievementCondition.singleRunScore,
         targetValue: 500,
@@ -14,8 +14,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'high_scorer',
-        title: '고득점자',
-        description: '단일 게임 1500점 달성',
+        title: 'High Scorer',
+        description: 'Single run score 1500',
         iconEmoji: '🔥',
         condition: AchievementCondition.singleRunScore,
         targetValue: 1500,
@@ -24,8 +24,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'neon_hunter',
-        title: '네온 헌터',
-        description: '단일 게임 2500점 달성',
+        title: 'Neon Hunter',
+        description: 'Single run score 2500',
         iconEmoji: '⚡',
         condition: AchievementCondition.singleRunScore,
         targetValue: 2500,
@@ -34,8 +34,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'legend',
-        title: '전설',
-        description: '누적 총점 10000점 돌파',
+        title: 'Legend',
+        description: 'Total score over 10000',
         iconEmoji: '👑',
         condition: AchievementCondition.totalScore,
         targetValue: 10000,
@@ -46,8 +46,8 @@ List<Achievement> buildAchievementCatalog() => [
       // ── 중력 관련 ──────────────────────────────────────────────────────────
       Achievement(
         id: 'gravity_curious',
-        title: '중력 탐험가',
-        description: '중력 10번 뒤집기',
+        title: 'Gravity Explorer',
+        description: 'Flip gravity 10 times',
         iconEmoji: '🔃',
         condition: AchievementCondition.gravityFlipCount,
         targetValue: 10,
@@ -55,8 +55,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'gravity_master',
-        title: '중력 마스터',
-        description: '중력 50번 뒤집기',
+        title: 'Gravity Master',
+        description: 'Flip gravity 50 times',
         iconEmoji: '⚡',
         condition: AchievementCondition.gravityFlipCount,
         targetValue: 50,
@@ -65,8 +65,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'gravity_god',
-        title: '중력의 신',
-        description: '중력 200번 뒤집기',
+        title: 'God of Gravity',
+        description: 'Flip gravity 200 times',
         iconEmoji: '🌀',
         condition: AchievementCondition.gravityFlipCount,
         targetValue: 200,
@@ -76,8 +76,8 @@ List<Achievement> buildAchievementCatalog() => [
       // ── 콤보 관련 ──────────────────────────────────────────────────────────
       Achievement(
         id: 'platformer',
-        title: '플랫폼 달인',
-        description: '연속 플랫폼 30개 착지 (콤보 x30)',
+        title: 'Platform Master',
+        description: 'Land on 30 platforms consecutively (Combo x30)',
         iconEmoji: '🤖',
         condition: AchievementCondition.consecutivePlatforms,
         targetValue: 30,
@@ -86,8 +86,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'fever_king',
-        title: '피버 킹',
-        description: '콤보 x20 달성',
+        title: 'Fever King',
+        description: 'Reach Combo x20',
         iconEmoji: '👾',
         condition: AchievementCondition.maxComboReached,
         targetValue: 20,
@@ -98,8 +98,8 @@ List<Achievement> buildAchievementCatalog() => [
       // ── 플레이 횟수 관련 ───────────────────────────────────────────────────
       Achievement(
         id: 'ghost_player',
-        title: '유령 플레이어',
-        description: '총 50번 플레이',
+        title: 'Ghost Player',
+        description: 'Play 50 times',
         iconEmoji: '👻',
         condition: AchievementCondition.totalGamesPlayed,
         targetValue: 50,
@@ -108,8 +108,8 @@ List<Achievement> buildAchievementCatalog() => [
       ),
       Achievement(
         id: 'survivor',
-        title: '생존자',
-        description: '총 100번 플레이',
+        title: 'Survivor',
+        description: 'Play 100 times',
         iconEmoji: '🦠',
         condition: AchievementCondition.totalGamesPlayed,
         targetValue: 100,
@@ -120,8 +120,8 @@ List<Achievement> buildAchievementCatalog() => [
       // ── 코인 관련 ──────────────────────────────────────────────────────────
       Achievement(
         id: 'coin_collector',
-        title: '수집가',
-        description: '코인 500개 모으기',
+        title: 'Collector',
+        description: 'Collect 500 coins',
         iconEmoji: '💰',
         condition: AchievementCondition.totalCoinsCollected,
         targetValue: 500,
@@ -131,8 +131,8 @@ List<Achievement> buildAchievementCatalog() => [
       // ── 미션 관련 ──────────────────────────────────────────────────────────
       Achievement(
         id: 'mission_rainbow',
-        title: '무지개 전사',
-        description: '데일리 미션 50개 달성',
+        title: 'Rainbow Warrior',
+        description: 'Complete 50 daily missions',
         iconEmoji: '🌈',
         condition: AchievementCondition.dailyMissionsTotal,
         targetValue: 50,

@@ -1,5 +1,6 @@
 // Physics and game-wide constants
 const double kGravityForce = 1800.0; // pixels/s²
+const double kAntiGravityForce = 320.0; // pixels/s² — weak upward pull for floaty antigravity
 const double kJumpVelocity = 700.0; // pixels/s on bounce
 const double kMaxHorizontalSpeed = 400.0;
 const double kGravityFlipCooldown = 1.5; // seconds
@@ -7,7 +8,7 @@ const double kAntiGravityDuration = 2.5; // seconds
 const double kMinAntiGravityDuration = 1.2; // seconds
 const double kBaseScrollSpeed = 30.0; // initial auto-scroll speed
 const double kSpeedIncreaseFactor = 0.05; // speed increase per score point or second? user said 0.002 per frame.
-const double kWorldTopLimit = -2000.0; // world Y limit for game over
+const double kWorldTopLimit = -9999999.0; // effectively disabled — game ends by falling or electric ceiling
 const double kPlatformWidth = 80.0;
 const double kPlatformHeight = 14.0;
 const double kCharacterSize = 40.0;

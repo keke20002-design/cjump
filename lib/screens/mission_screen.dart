@@ -24,7 +24,7 @@ class _MissionScreenState extends State<MissionScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D1B2A),
         title: const Text(
-          '데일리 미션',
+          'Daily Missions',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -66,10 +66,10 @@ class _MissionScreenState extends State<MissionScreen> {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
-                    const Text('📋 총 달성 미션: ',
+                    const Text('📋 Total Completed: ',
                         style: TextStyle(color: Colors.white60, fontSize: 12)),
                     Text(
-                      '${widget.missionManager.totalMissionsCompleted}개',
+                      '${widget.missionManager.totalMissionsCompleted}',
                       style: const TextStyle(
                           color: Color(0xFFFF8A65),
                           fontWeight: FontWeight.bold,
@@ -223,7 +223,7 @@ class _MissionCard extends StatelessWidget {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('코인이 부족합니다 (15코인 필요)'),
+                            content: Text('Not enough coins (15 needed)'),
                             backgroundColor: Color(0xFF1A1A2E),
                           ),
                         );
@@ -234,13 +234,13 @@ class _MissionCard extends StatelessWidget {
                     onStateChanged();
                   },
                   child: const Text(
-                    '🔄 리롤 (15💰)',
+                    '🔄 Reroll (15💰)',
                     style: TextStyle(color: Colors.white38, fontSize: 10),
                   ),
                 ),
               if (completed)
                 const Text(
-                  '✅ 완료!',
+                  '✅ Completed!',
                   style: TextStyle(
                       color: Color(0xFF69FF47),
                       fontSize: 11,

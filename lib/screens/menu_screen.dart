@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../game/antigravity_game.dart';
+import '../ads/ad_manager.dart';
 import 'game_screen.dart';
 import 'skin_shop_screen.dart';
 import 'achievement_screen.dart';
@@ -21,11 +24,21 @@ class _MenuScreenState extends State<MenuScreen>
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;
 
-  bool _tiltEnabled = true;
+  BannerAd? _bannerAd;
+  bool _bannerLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    if (!kIsWeb) {
+      _bannerAd = AdManager.instance.createBanner(
+        listener: BannerAdListener(
+          onAdLoaded: (_) {
+            if (mounted) setState(() => _bannerLoaded = true);
+          },
+        ),
+      );
+    }
     _bounceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -46,6 +59,7 @@ class _MenuScreenState extends State<MenuScreen>
   void dispose() {
     _bounceCtrl.dispose();
     _pulseCtrl.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -72,12 +86,7 @@ class _MenuScreenState extends State<MenuScreen>
           Container(color: Colors.black.withValues(alpha: 0.38)),
 
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
+            child: Column(
               children: [
                 // Top bar: coin + icon buttons
                 Padding(
@@ -117,7 +126,7 @@ class _MenuScreenState extends State<MenuScreen>
                         children: [
                           _IconMenuButton(
                             icon: '🏆',
-                            label: '업적',
+                            label: 'Achieve',
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => const AchievementScreen(),
@@ -127,7 +136,7 @@ class _MenuScreenState extends State<MenuScreen>
                           const SizedBox(width: 8),
                           _IconMenuButton(
                             icon: '📋',
-                            label: '미션',
+                            label: 'Missions',
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => MissionScreen(
@@ -206,7 +215,6 @@ class _MenuScreenState extends State<MenuScreen>
                   label: 'PLAY',
                   color: const Color(0xFF4CAF50),
                   onTap: () {
-                    widget.game.useTilt = _tiltEnabled;
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (_) => GameScreen(game: widget.game),
@@ -312,41 +320,17 @@ class _MenuScreenState extends State<MenuScreen>
 
                 const Spacer(flex: 3),
 
-                // Tilt toggle
-                Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.screen_rotation,
-                          color: Colors.white54, size: 16),
-                      const SizedBox(width: 8),
-                      const Text('Tilt Control',
-                          style: TextStyle(
-                              color: Colors.white70, fontSize: 13)),
-                      const SizedBox(width: 4),
-                      Switch(
-                        value: _tiltEnabled,
-                        onChanged: (v) => setState(() => _tiltEnabled = v),
-                        activeThumbColor: const Color(0xFF4A90D9),
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                // Banner Ad
+                if (_bannerLoaded && _bannerAd != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      width: _bannerAd!.size.width.toDouble(),
+                      height: _bannerAd!.size.height.toDouble(),
+                      child: AdWidget(ad: _bannerAd!),
                     ),
                   ),
-                ),
-              ),
+              ],
             ),
           ),
         ],

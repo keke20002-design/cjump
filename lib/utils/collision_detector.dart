@@ -12,6 +12,7 @@ class CollisionDetector {
     required Rect platformRect,
     required double velocityY,
     required bool isNormalGravity,
+    double dt = 0.016,
   }) {
     // Basic AABB overlap
     if (!charRect.overlaps(platformRect)) return null;
@@ -21,16 +22,19 @@ class CollisionDetector {
       if (velocityY <= 0) return null;
       final charBottom = charRect.bottom;
       final platTop = platformRect.top;
-      // Ensure the character's bottom was above the platform top last frame
-      // (penetration check: bottom is within platform height range)
-      if (charBottom - velocityY * 0.016 > platTop) return null;
+      // Swept check: previous-frame bottom must have been at or above platTop
+      // (i.e., player crossed the boundary this frame, not already past it)
+      final prevBottom = charBottom - velocityY * dt;
+      if (prevBottom > platTop) return null;
       return const CollisionResult(surface: CollisionSurface.top);
     } else {
       // Player moves upward (-Y), hits BOTTOM surface of platform
       if (velocityY >= 0) return null;
       final charTop = charRect.top;
       final platBottom = platformRect.bottom;
-      if (charTop - velocityY * 0.016 < platBottom) return null;
+      // Swept check: previous-frame top must have been at or below platBottom
+      final prevTop = charTop - velocityY * dt;
+      if (prevTop < platBottom) return null;
       return const CollisionResult(surface: CollisionSurface.bottom);
     }
   }

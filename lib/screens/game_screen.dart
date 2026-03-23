@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import '../game/antigravity_game.dart';
 import '../game/game_state.dart';
 import '../widgets/hud_overlay.dart';
+import '../widgets/tutorial_overlay.dart';
 import 'game_over_screen.dart';
 import 'menu_screen.dart';
 
@@ -17,6 +19,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
+  late final FocusNode _focusNode;
   Duration _lastTime = Duration.zero;
   bool _initialized = false;
 
@@ -25,6 +28,26 @@ class _GameScreenState extends State<GameScreen>
     super.initState();
     _ticker = createTicker(_tick)..start();
     widget.game.addListener(_onGameStateChanged);
+    _focusNode = FocusNode();
+  }
+
+  KeyEventResult _onKeyEvent(FocusNode _, KeyEvent event) {
+    if (widget.game.useTilt) return KeyEventResult.ignored; // 키보드는 non-tilt 모드에서만
+    final isDown = event is KeyDownEvent || event is KeyRepeatEvent;
+    final isUp = event is KeyUpEvent;
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      widget.game.setLeftPressed(isDown ? true : isUp ? false : false);
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      widget.game.setRightPressed(isDown ? true : isUp ? false : false);
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.space && isDown) {
+      widget.game.onTap();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   void _tick(Duration elapsed) {
@@ -58,7 +81,9 @@ class _GameScreenState extends State<GameScreen>
       widget.game.setScreenSize(size.width, size.height);
       // Defer until after first frame so notifyListeners() doesn't fire during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.game.startGame();
+        if (widget.game.gameState != GameState.playing) {
+          widget.game.startGame();
+        }
         widget.game.loadPrefs();
       });
     }
@@ -67,13 +92,18 @@ class _GameScreenState extends State<GameScreen>
   @override
   void dispose() {
     _ticker.dispose();
+    _focusNode.dispose();
     widget.game.removeListener(_onGameStateChanged);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Focus(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: _onKeyEvent,
+      child: Scaffold(
       body: GestureDetector(
         onTap: widget.game.onTap,
         behavior: HitTestBehavior.opaque,
@@ -88,8 +118,11 @@ class _GameScreenState extends State<GameScreen>
             // HUD
             HudOverlay(game: widget.game),
 
-            // Tilt-off: left/right buttons
-            if (!widget.game.useTilt)
+            // Tutorial overlay
+            TutorialOverlay(game: widget.game),
+
+            // Tilt-off: left/right buttons (web test only — disabled)
+            if (!widget.game.useTilt && false)
               Positioned(
                 bottom: 30,
                 left: 0,
@@ -141,7 +174,7 @@ class _GameScreenState extends State<GameScreen>
               left: 8,
               child: SafeArea(
                 child: IconButton(
-                  tooltip: '홈으로',
+                  tooltip: 'Home',
                   icon: const Icon(Icons.home_rounded, color: Colors.white70),
                   onPressed: () async {
                     widget.game.togglePause();
@@ -151,18 +184,18 @@ class _GameScreenState extends State<GameScreen>
                         backgroundColor: const Color(0xFF1A1A2E),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
-                        title: const Text('홈으로 나가기',
+                        title: const Text('Go to Home',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold)),
                         content: const Text(
-                          '현재 게임이 종료됩니다.\n정말 나가시겠어요?',
+                          'The current game will end.\nAre you sure you want to leave?',
                           style: TextStyle(color: Colors.white70),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(ctx).pop(false),
-                            child: const Text('취소',
+                            child: const Text('Cancel',
                                 style: TextStyle(color: Colors.white54)),
                           ),
                           ElevatedButton(
@@ -172,7 +205,7 @@ class _GameScreenState extends State<GameScreen>
                                   borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: () => Navigator.of(ctx).pop(true),
-                            child: const Text('나가기',
+                            child: const Text('Leave',
                                 style: TextStyle(color: Colors.white)),
                           ),
                         ],
@@ -202,8 +235,8 @@ class _GameScreenState extends State<GameScreen>
               child: SafeArea(
                 child: IconButton(
                   tooltip: widget.game.gameState == GameState.paused
-                      ? '계속하기'
-                      : '일시정지',
+                      ? 'Resume'
+                      : 'Pause',
                   icon: Icon(
                     widget.game.gameState == GameState.paused
                         ? Icons.play_arrow_rounded
@@ -230,18 +263,18 @@ class _GameScreenState extends State<GameScreen>
                       backgroundColor: const Color(0xFF1A1A2E),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
-                      title: const Text('홈으로 나가기',
+                      title: const Text('Go to Home',
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),
                       content: const Text(
-                        '현재 게임이 종료됩니다.\n정말 나가시겠어요?',
+                        'The current game will end.\nAre you sure you want to leave?',
                         style: TextStyle(color: Colors.white70),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('취소',
+                          child: const Text('Cancel',
                               style: TextStyle(color: Colors.white54)),
                         ),
                         ElevatedButton(
@@ -251,7 +284,7 @@ class _GameScreenState extends State<GameScreen>
                                 borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text('나가기',
+                          child: const Text('Leave',
                               style: TextStyle(color: Colors.white)),
                         ),
                       ],
@@ -270,7 +303,7 @@ class _GameScreenState extends State<GameScreen>
           ],
         ),
       ),
-    );
+    )); // Focus
   }
 }
 
@@ -357,7 +390,7 @@ class _PauseOverlay extends StatelessWidget {
                 // Resume button
                 _PauseMenuButton(
                   icon: Icons.play_arrow_rounded,
-                  label: '계속하기',
+                  label: 'Resume',
                   color: const Color(0xFF4CAF50),
                   onTap: onResume,
                 ),
@@ -365,7 +398,7 @@ class _PauseOverlay extends StatelessWidget {
                 // Restart button
                 _PauseMenuButton(
                   icon: Icons.replay_rounded,
-                  label: '다시 시작',
+                  label: 'Restart',
                   color: const Color(0xFF4A90D9),
                   onTap: onRestart,
                 ),
@@ -373,7 +406,7 @@ class _PauseOverlay extends StatelessWidget {
                 // Home button
                 _PauseMenuButton(
                   icon: Icons.home_rounded,
-                  label: '홈으로',
+                  label: 'Home',
                   color: const Color(0xFFAB47BC),
                   onTap: onHome,
                 ),

@@ -41,6 +41,11 @@ class PlayerComponent {
     // Apply gravity
     velocityY += gravity.effectiveGravity * dt;
 
+    // In antigravity: cap upward speed for a slow, floaty space-drift feel
+    if (!gravity.isNormal) {
+      velocityY = velocityY.clamp(-260.0, double.infinity);
+    }
+
     // Update position
     x += velocityX * dt;
     y += velocityY * dt;

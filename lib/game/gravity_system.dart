@@ -15,7 +15,8 @@ class GravitySystem extends ChangeNotifier {
 
   GravityState get state => _state;
   bool get isNormal => _state == GravityState.normal;
-  bool get canFlip => _cooldownRemaining <= 0 && !_isTransitioning;
+  /// Antigravity→normal: always allowed (no cooldown). Normal→antigravity: cooldown applies.
+  bool get canFlip => !_isTransitioning && (!isNormal || _cooldownRemaining <= 0);
   double get cooldownFraction =>
       1.0 - (_cooldownRemaining / kGravityFlipCooldown).clamp(0.0, 1.0);
   double get transitionProgress => _transitionProgress;
@@ -35,7 +36,8 @@ class GravitySystem extends ChangeNotifier {
           ? (2 * eased - 1) * kGravityForce
           : (1 - 2 * eased) * kGravityForce;
     }
-    return gravityDirection * kGravityForce;
+    // Antigravity uses a much weaker force for slow, floaty drift
+    return isNormal ? kGravityForce : -kAntiGravityForce;
   }
 
   void addFlipListener(VoidCallback cb) => _onFlipListeners.add(cb);
@@ -43,13 +45,20 @@ class GravitySystem extends ChangeNotifier {
 
   bool tryFlip([int score = 0]) {
     if (!canFlip) return false;
+    final wasNormal = isNormal;
     _state = isNormal ? GravityState.antigravity : GravityState.normal;
     _antiGravityTimer = !isNormal
         ? (kAntiGravityDuration - (score * 0.0013))
             .clamp(kMinAntiGravityDuration, kAntiGravityDuration)
         : 0;
-    _cooldownRemaining =
-        (kGravityFlipCooldown + (score * 0.0015)).clamp(1.5, 3.0);
+    // Cooldown only applies when going normal→antigravity (so player can't spam to antigravity)
+    // wasNormal==true means we just went to antigravity — set cooldown
+    // wasNormal==false means we just went to normal (from antigravity) — no cooldown needed
+    // Normal→antigravity: full cooldown (1.5~3.0s)
+    // Antigravity→normal: immediate, but 1.5s cooldown after (blocks re-entering antigravity too fast)
+    _cooldownRemaining = wasNormal
+        ? (kGravityFlipCooldown + (score * 0.0015)).clamp(1.5, 3.0)
+        : 1.5;
     _transitionProgress = 0.0;
     _isTransitioning = true;
     for (final cb in List.of(_onFlipListeners)) {

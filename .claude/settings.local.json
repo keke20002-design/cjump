@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze:*)",
+      "Bash(flutter pub:*)",
+      "Bash(cd C:/Users/admin/cjump && flutter pub get && dart run flutter_launcher_icons)",
+      "Bash(cd C:/Users/admin/cjump && flutter build apk --release 2>&1)",
+      "Bash(cd C:/Users/admin/cjump && flutter build appbundle --release 2>&1)",
+      "Bash(grep:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

@@ -33,7 +33,7 @@ class AchievementScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D1B2A),
         title: const Text(
-          '업적',
+          'Achievements',
           style: TextStyle(
               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),

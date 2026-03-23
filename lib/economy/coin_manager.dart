@@ -7,7 +7,6 @@ class CoinManager extends ChangeNotifier {
 
   int _balance = 0;
   int _sessionCoins = 0; // 현재 게임에서 획득한 코인
-  int _sessionPlatforms = 0; // 이번 게임 착지 플랫폼 수 (점수 보너스 계산용)
   bool _doubleCoinsActive = false; // 2배 코인 부스터
 
   int get balance => _balance;
@@ -21,26 +20,16 @@ class CoinManager extends ChangeNotifier {
   // ── 세션 초기화 ────────────────────────────────────────────────────────────
   void resetSession() {
     _sessionCoins = 0;
-    _sessionPlatforms = 0;
   }
 
   // ── 인게임 수급 ───────────────────────────────────────────────────────────
 
-  /// 플랫폼 착지 시 호출 (gravityPad: +3, 일반: +1)
-  void onPlatformLand({bool isGravityPad = false}) {
-    _sessionPlatforms++;
-    final base = isGravityPad ? 3 : 1;
-    _addSession(base);
+  /// 플랫폼 착지 시 호출 (통계용 — 코인 추가 없음)
+  void onPlatformLand({bool isGravityPad = false}) {}
 
-    // 100 착지마다 +5 보너스
-    if (_sessionPlatforms % 100 == 0) {
-      _addSession(5);
-    }
-  }
-
-  /// 점수 100點 단위 보너스 코인 (+5)
-  void onScoreMilestone() {
-    _addSession(5);
+  /// 코인 아이템 수집 시 호출 (큰 코인 = +5)
+  void onCoinItemCollected([int value = 1]) {
+    _addSession(value);
   }
 
   void _addSession(int amount) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum PlatformType { normal, moving, breaking, gravityPad, cloud, spike }
+enum PlatformType { normal, moving, breaking, gravityPad, cloud, spike, booster, crystal }
 
 abstract class GamePlatform {
   double x; // center x
@@ -9,6 +9,7 @@ abstract class GamePlatform {
   double height;
   PlatformType type;
   bool isDestroyed = false;
+  bool coinsSpawned = false; // 코인 스폰 여부 추적
 
   GamePlatform({
     required this.x,

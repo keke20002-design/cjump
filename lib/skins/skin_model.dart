@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum SkinCategory { basic, effect, theme }
-enum UnlockType { score, achievement, coin, combo, missions, free }
+enum UnlockType { score, achievement, coin, combo, missions, free, adUnlock }
 
 enum TrailType { none, lightning, starDust, flame, ice, blackHole, aurora, ghost }
 enum ParticleType { none, spark, star, ember, snowflake, glitch, pixel, rainbow }
@@ -46,17 +46,19 @@ class CharacterSkin {
   String get unlockDescription {
     switch (unlockType) {
       case UnlockType.free:
-        return '기본 스킨';
+        return 'Default Skin';
       case UnlockType.score:
-        return '점수 $unlockValue점 달성';
+        return 'Reach $unlockValue Score';
       case UnlockType.coin:
-        return '💰 $unlockValue 코인';
+        return '💰 $unlockValue Coins';
       case UnlockType.achievement:
-        return '업적 달성 보상';
+        return 'Achievement Reward';
       case UnlockType.combo:
-        return '콤보 x$unlockValue 달성';
+        return 'Reach $unlockValue Combo';
       case UnlockType.missions:
-        return '미션 $unlockValue개 달성';
+        return 'Complete $unlockValue Missions';
+      case UnlockType.adUnlock:
+        return 'Watch Ad to Unlock';
     }
   }
 }

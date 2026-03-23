@@ -66,22 +66,22 @@ class DailyMission {
 
 List<Map<String, dynamic>> _missionPool = [
   // easy
-  {'desc': '오늘 3판 플레이', 'cond': AchievementCondition.totalGamesPlayed, 'target': 3, 'coins': 20, 'diff': MissionDifficulty.easy},
-  {'desc': '오늘 5판 플레이', 'cond': AchievementCondition.totalGamesPlayed, 'target': 5, 'coins': 25, 'diff': MissionDifficulty.easy},
-  {'desc': '오늘 코인 30개 수집', 'cond': AchievementCondition.totalCoinsCollected, 'target': 30, 'coins': 20, 'diff': MissionDifficulty.easy},
-  {'desc': '오늘 중력 10번 뒤집기', 'cond': AchievementCondition.gravityFlipCount, 'target': 10, 'coins': 20, 'diff': MissionDifficulty.easy},
+  {'desc': 'Play 3 games today', 'cond': AchievementCondition.totalGamesPlayed, 'target': 3, 'coins': 20, 'diff': MissionDifficulty.easy},
+  {'desc': 'Play 5 games today', 'cond': AchievementCondition.totalGamesPlayed, 'target': 5, 'coins': 25, 'diff': MissionDifficulty.easy},
+  {'desc': 'Collect 30 coins today', 'cond': AchievementCondition.totalCoinsCollected, 'target': 30, 'coins': 20, 'diff': MissionDifficulty.easy},
+  {'desc': 'Flip gravity 10 times today', 'cond': AchievementCondition.gravityFlipCount, 'target': 10, 'coins': 20, 'diff': MissionDifficulty.easy},
   // medium
-  {'desc': '오늘 단일 게임 500점 달성', 'cond': AchievementCondition.singleRunScore, 'target': 500, 'coins': 30, 'diff': MissionDifficulty.medium},
-  {'desc': '오늘 중력 20번 뒤집기', 'cond': AchievementCondition.gravityFlipCount, 'target': 20, 'coins': 25, 'diff': MissionDifficulty.medium},
-  {'desc': '오늘 연속 플랫폼 15개 착지', 'cond': AchievementCondition.consecutivePlatforms, 'target': 15, 'coins': 35, 'diff': MissionDifficulty.medium},
-  {'desc': '오늘 코인 50개 수집', 'cond': AchievementCondition.totalCoinsCollected, 'target': 50, 'coins': 30, 'diff': MissionDifficulty.medium},
-  {'desc': '오늘 콤보 x10 달성', 'cond': AchievementCondition.maxComboReached, 'target': 10, 'coins': 35, 'diff': MissionDifficulty.medium},
+  {'desc': 'Reach 500 score in one game today', 'cond': AchievementCondition.singleRunScore, 'target': 500, 'coins': 30, 'diff': MissionDifficulty.medium},
+  {'desc': 'Flip gravity 20 times today', 'cond': AchievementCondition.gravityFlipCount, 'target': 20, 'coins': 25, 'diff': MissionDifficulty.medium},
+  {'desc': 'Land on 15 platforms consecutively today', 'cond': AchievementCondition.consecutivePlatforms, 'target': 15, 'coins': 35, 'diff': MissionDifficulty.medium},
+  {'desc': 'Collect 50 coins today', 'cond': AchievementCondition.totalCoinsCollected, 'target': 50, 'coins': 30, 'diff': MissionDifficulty.medium},
+  {'desc': 'Reach Combo x10 today', 'cond': AchievementCondition.maxComboReached, 'target': 10, 'coins': 35, 'diff': MissionDifficulty.medium},
   // hard
-  {'desc': '오늘 단일 게임 1000점 달성', 'cond': AchievementCondition.singleRunScore, 'target': 1000, 'coins': 50, 'diff': MissionDifficulty.hard},
-  {'desc': '오늘 중력 40번 뒤집기', 'cond': AchievementCondition.gravityFlipCount, 'target': 40, 'coins': 45, 'diff': MissionDifficulty.hard},
-  {'desc': '오늘 콤보 x20 달성', 'cond': AchievementCondition.maxComboReached, 'target': 20, 'coins': 50, 'diff': MissionDifficulty.hard},
-  {'desc': '오늘 코인 100개 수집', 'cond': AchievementCondition.totalCoinsCollected, 'target': 100, 'coins': 45, 'diff': MissionDifficulty.hard},
-  {'desc': '오늘 연속 플랫폼 25개 착지', 'cond': AchievementCondition.consecutivePlatforms, 'target': 25, 'coins': 40, 'diff': MissionDifficulty.hard},
+  {'desc': 'Reach 1000 score in one game today', 'cond': AchievementCondition.singleRunScore, 'target': 1000, 'coins': 50, 'diff': MissionDifficulty.hard},
+  {'desc': 'Flip gravity 40 times today', 'cond': AchievementCondition.gravityFlipCount, 'target': 40, 'coins': 45, 'diff': MissionDifficulty.hard},
+  {'desc': 'Reach Combo x20 today', 'cond': AchievementCondition.maxComboReached, 'target': 20, 'coins': 50, 'diff': MissionDifficulty.hard},
+  {'desc': 'Collect 100 coins today', 'cond': AchievementCondition.totalCoinsCollected, 'target': 100, 'coins': 45, 'diff': MissionDifficulty.hard},
+  {'desc': 'Land on 25 platforms consecutively today', 'cond': AchievementCondition.consecutivePlatforms, 'target': 25, 'coins': 40, 'diff': MissionDifficulty.hard},
 ];
 
 // ── 미션 매니저 ───────────────────────────────────────────────────────────────

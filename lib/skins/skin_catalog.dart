@@ -11,7 +11,7 @@ List<CharacterSkin> buildSkinCatalog() {
     // ── Basic ──────────────────────────────────────────────────────────────
     CharacterSkin(
       id: 'green_core',
-      displayName: '그린 코어',
+      displayName: 'Green Core',
       category: SkinCategory.basic,
       unlockType: UnlockType.free,
       unlockValue: 0,
@@ -21,7 +21,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'red_core',
-      displayName: '레드 코어',
+      displayName: 'Red Core',
       category: SkinCategory.basic,
       unlockType: UnlockType.score,
       unlockValue: 300,
@@ -31,7 +31,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'neon_core',
-      displayName: '네온 코어',
+      displayName: 'Neon Core',
       category: SkinCategory.basic,
       unlockType: UnlockType.score,
       unlockValue: 700,
@@ -41,7 +41,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'shadow_core',
-      displayName: '섀도우 코어',
+      displayName: 'Shadow Core',
       category: SkinCategory.basic,
       unlockType: UnlockType.coin,
       unlockValue: 150,
@@ -53,11 +53,10 @@ List<CharacterSkin> buildSkinCatalog() {
     // ── Effect ─────────────────────────────────────────────────────────────
     CharacterSkin(
       id: 'lightning_trail',
-      displayName: '번개 트레일',
+      displayName: 'Lightning Trail',
       category: SkinCategory.effect,
-      unlockType: UnlockType.achievement,
+      unlockType: UnlockType.adUnlock,
       unlockValue: 0,
-      unlockAchievementId: 'gravity_master',
       isUnlocked: unlocked.contains('lightning_trail'),
       coreColor: const Color(0xFFFFD600),
       glowColor: const Color(0xFFFFFF00),
@@ -66,7 +65,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'stardust_trail',
-      displayName: '스타더스트',
+      displayName: 'Stardust',
       category: SkinCategory.effect,
       unlockType: UnlockType.coin,
       unlockValue: 300,
@@ -78,7 +77,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'flame_core',
-      displayName: '플레임 코어',
+      displayName: 'Flame Core',
       category: SkinCategory.effect,
       unlockType: UnlockType.achievement,
       unlockValue: 0,
@@ -91,7 +90,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'ice_core',
-      displayName: '아이스 코어',
+      displayName: 'Ice Core',
       category: SkinCategory.effect,
       unlockType: UnlockType.coin,
       unlockValue: 200,
@@ -105,11 +104,10 @@ List<CharacterSkin> buildSkinCatalog() {
     // ── Theme ──────────────────────────────────────────────────────────────
     CharacterSkin(
       id: 'blackhole_core',
-      displayName: '블랙홀 코어',
+      displayName: 'Black Hole Core',
       category: SkinCategory.theme,
-      unlockType: UnlockType.achievement,
+      unlockType: UnlockType.adUnlock,
       unlockValue: 0,
-      unlockAchievementId: 'legend',
       isUnlocked: unlocked.contains('blackhole_core'),
       coreColor: const Color(0xFF000000),
       glowColor: const Color(0xFFAA00FF),
@@ -118,7 +116,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'virus_core',
-      displayName: '바이러스 코어',
+      displayName: 'Virus Core',
       category: SkinCategory.theme,
       unlockType: UnlockType.achievement,
       unlockValue: 0,
@@ -130,7 +128,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'gold_core',
-      displayName: '골드 코어',
+      displayName: 'Gold Core',
       category: SkinCategory.theme,
       unlockType: UnlockType.coin,
       unlockValue: 1000,
@@ -142,7 +140,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'robot_core',
-      displayName: '로봇 코어',
+      displayName: 'Robot Core',
       category: SkinCategory.theme,
       unlockType: UnlockType.achievement,
       unlockValue: 0,
@@ -155,7 +153,7 @@ List<CharacterSkin> buildSkinCatalog() {
     // ── v2 스킨 ───────────────────────────────────────────────────────────
     CharacterSkin(
       id: 'ghost_core',
-      displayName: '고스트 코어',
+      displayName: 'Ghost Core',
       category: SkinCategory.theme,
       unlockType: UnlockType.achievement,
       unlockValue: 0,
@@ -168,7 +166,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'pixel_core',
-      displayName: '픽셀 코어',
+      displayName: 'Pixel Core',
       category: SkinCategory.theme,
       unlockType: UnlockType.achievement,
       unlockValue: 0,
@@ -180,7 +178,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'neon_glitch',
-      displayName: '네온 글리치',
+      displayName: 'Neon Glitch',
       category: SkinCategory.theme,
       unlockType: UnlockType.achievement,
       unlockValue: 0,
@@ -192,7 +190,7 @@ List<CharacterSkin> buildSkinCatalog() {
     ),
     CharacterSkin(
       id: 'rainbow_core',
-      displayName: '레인보우 코어',
+      displayName: 'Rainbow Core',
       category: SkinCategory.theme,
       unlockType: UnlockType.achievement,
       unlockValue: 0,

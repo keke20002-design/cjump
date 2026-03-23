@@ -3,12 +3,16 @@ import 'package:flutter/services.dart';
 import 'game/antigravity_game.dart';
 import 'screens/menu_screen.dart';
 import 'economy/persistence_manager.dart';
+import 'ads/ad_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize persistence before anything else
   await PersistenceManager.instance.init();
+
+  // Initialize AdMob SDK
+  await AdManager.instance.initialize();
 
   // Lock to portrait
   await SystemChrome.setPreferredOrientations([

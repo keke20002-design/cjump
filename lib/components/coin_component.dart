@@ -7,28 +7,40 @@ enum CoinState { idle, collected }
 class CoinComponent {
   double x;
   double y;
+  double vy; // 코인 비 낙하 속도 (기본 0)
   CoinState state = CoinState.idle;
   double _rotAngle = 0.0;
   double _floatOffset = 0.0;
   double _floatTime = 0.0;
-  double _collectAnim = 0.0; // 0..1 수집 애니메이션
+  double _collectAnim = 0.0;
 
-  static const double size = 14.0;
-  static const double magnetRange = 40.0;
+  final bool isBigCoin; // 큰 코인 = 5배 가치
 
-  CoinComponent({required this.x, required this.y});
+  static const double size = 18.0;
+  static const double bigSize = 26.0;
+  static const double magnetRange = 60.0;
+
+  CoinComponent({required this.x, required this.y, this.isBigCoin = false, this.vy = 0});
+
+  int get value => isBigCoin ? 5 : 1;
+  double get _radius => (isBigCoin ? bigSize : size) / 2;
 
   bool get isCollected => state == CoinState.collected;
   bool get isDead => isCollected && _collectAnim >= 1.0;
 
   void update(double dt) {
-    _rotAngle += dt * 3.0;
+    _rotAngle += dt * (isBigCoin ? 1.5 : 3.0);
     _floatTime += dt;
     _floatOffset = sin(_floatTime * 2.5) * 3.0;
 
+    // 코인 비 낙하
+    if (vy != 0 && !isCollected) {
+      y += vy * dt;
+    }
+
     if (isCollected) {
       _collectAnim = (_collectAnim + dt * 4.0).clamp(0.0, 1.0);
-      y -= dt * 60; // 수집 시 위로 솟아오름
+      y -= dt * 80;
     }
   }
 
@@ -42,51 +54,71 @@ class CoinComponent {
     if (isDead) return;
 
     final alpha = isCollected ? (1.0 - _collectAnim) : 1.0;
-    final drawY = y + _floatOffset;
+    final drawY = isCollected ? y : y + _floatOffset;
     final scale = isCollected ? (1.0 + _collectAnim * 0.5) : 1.0;
+    final r = _radius;
 
     canvas.save();
     canvas.translate(x, drawY);
     canvas.scale(scale);
     canvas.rotate(_rotAngle);
 
-    // 코인 원형
-    final coinPaint = Paint()
-      ..color = const Color(0xFFFFD700).withValues(alpha: alpha)
-      ..style = PaintingStyle.fill;
+    // 큰 코인: 황금 테두리 추가 glow
+    if (isBigCoin) {
+      final outerGlow = Paint()
+        ..color = const Color(0xFFFFD700).withValues(alpha: alpha * 0.25)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      canvas.drawCircle(Offset.zero, r + 6, outerGlow);
+    }
+
+    // 코인 glow
     final glowPaint = Paint()
       ..color = const Color(0xFFFFD700).withValues(alpha: alpha * 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(Offset.zero, r + 3, glowPaint);
 
-    canvas.drawCircle(Offset.zero, size / 2 + 3, glowPaint);
-    canvas.drawCircle(Offset.zero, size / 2, coinPaint);
+    // 코인 원형
+    final coinPaint = Paint()
+      ..color = (isBigCoin ? const Color(0xFFFF8C00) : const Color(0xFFFFD700))
+          .withValues(alpha: alpha)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset.zero, r, coinPaint);
 
-    // 안쪽 하이라이트
+    // 하이라이트
     final hlPaint = Paint()
       ..color = const Color(0xFFFFF59D).withValues(alpha: alpha * 0.6)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(const Offset(-2, -2), size / 4, hlPaint);
+    canvas.drawCircle(Offset(-r * 0.3, -r * 0.3), r * 0.35, hlPaint);
 
     // 테두리
     final borderPaint = Paint()
       ..color = const Color(0xFFFFA000).withValues(alpha: alpha)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawCircle(Offset.zero, size / 2, borderPaint);
+      ..strokeWidth = isBigCoin ? 2.0 : 1.5;
+    canvas.drawCircle(Offset.zero, r, borderPaint);
 
-    // 동전 기호 (작은 선)
-    final linePaint = Paint()
-      ..color = const Color(0xFFFFA000).withValues(alpha: alpha * 0.8)
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(const Offset(0, -3), const Offset(0, 3), linePaint);
+    // 큰 코인: 별표 또는 ★ 심볼
+    if (isBigCoin) {
+      final linePaint = Paint()
+        ..color = const Color(0xFFFFA000).withValues(alpha: alpha * 0.9)
+        ..strokeWidth = 2.0
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(Offset(0, -r * 0.5), Offset(0, r * 0.5), linePaint);
+      canvas.drawLine(Offset(-r * 0.5, 0), Offset(r * 0.5, 0), linePaint);
+    } else {
+      final linePaint = Paint()
+        ..color = const Color(0xFFFFA000).withValues(alpha: alpha * 0.8)
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(Offset(0, -r * 0.55), Offset(0, r * 0.55), linePaint);
+    }
 
     canvas.restore();
   }
 
   Rect get bounds => Rect.fromCenter(
         center: Offset(x, y),
-        width: size,
-        height: size,
+        width: _radius * 2,
+        height: _radius * 2,
       );
 }
